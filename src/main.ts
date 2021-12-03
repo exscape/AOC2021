@@ -1,3 +1,3 @@
-import { Day1Part1 } from './day1.js';
+import { Day1 } from './day1.js';
 
-(new Day1Part1).answer();
+(new Day1).answer();

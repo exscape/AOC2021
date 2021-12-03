@@ -1,28 +1,34 @@
-import fs from 'fs';
 import { Solution } from './solution.js';
+import { arraySum, readLines } from './common.js';
 
-class Day1Part1 implements Solution {
-    parseData(data: string) {
-        let increases = 0;
-        let lines = data.split("\n");
-        for (let tmp in lines) {
-            let i = parseInt(tmp);
-            if (i === 0) continue; // TODO
-            if (parseInt(lines[i]) > parseInt(lines[i-1]))
-                increases++;
-        }
-        console.log(`Day 1 Part 1: ${increases}`)
-    }
-
-    answer() {
-        fs.readFile('data/day1.txt', "utf8", (err, data) => {
-            if (err) {
-                console.error(err)
-                return
-            }
-            this.parseData(data)
-        })
+function* slidingWindow(array: number[], windowSize: number) {
+    for (let i = 0; i <= array.length - windowSize; i++) {
+        yield array.slice(i, i + windowSize);
     }
 }
 
-export { Day1Part1 };
+class Day1 implements Solution {
+    parseData(data: string) {
+        let numbers = data.split("\n").map(s => parseInt(s));
+
+        for (let windowSize of [1, 3]) {
+            let previous;
+            let increases = 0;
+            for (let window of slidingWindow(numbers, windowSize)) {
+                let sum = arraySum(window);
+                if (previous !== undefined && sum > previous) {
+                    increases++;
+                }
+                previous = sum;
+            }
+
+            console.log(`Day 1, window size ${windowSize}: ${increases}`)
+        }
+    }
+
+    answer() {
+        readLines('data/day1.txt', (data) => this.parseData(data));
+    }
+}
+
+export { Day1 };
