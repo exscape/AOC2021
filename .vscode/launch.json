@@ -8,6 +8,8 @@
             "type": "pwa-node",
             "request": "launch",
             "name": "Launch Program",
+            "console": "internalConsole",
+            "outputCapture": "std",
             "skipFiles": [
                 "<node_internals>/**"
             ],
