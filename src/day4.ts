@@ -13,9 +13,11 @@ class Square {
 
 class Board {
     board: Square[][];
+    hasWon: boolean;
 
     constructor(lines: string[]) {
         this.board = []
+        this.hasWon = false
         for (let line of lines) {
             let row = line.trim()
                           .split(new RegExp("\\s+"))
@@ -34,10 +36,10 @@ class Board {
     }
 
     hasBingo(): boolean {
-        if (this.board.some(row => this.lineHasBingo(row)))
+        if (this.board.some(row => this.lineHasBingo(row)) || this.boardColumns().some(col => this.lineHasBingo(col))) {
+            this.hasWon = true;
             return true;
-        if (this.boardColumns().some(col => this.lineHasBingo(col)))
-            return true;
+        }
 
         return false;
     }
@@ -84,10 +86,7 @@ class Day4 implements Solution {
             let boards = [];
 
             for (let data of board_data) {
-                let board = new Board(data.split("\r\n"));
-                boards.push(board);
-                board.print();
-                console.log("\n"); 
+                boards.push(new Board(data.split("\r\n")));
             }
 
             outer:
@@ -98,8 +97,12 @@ class Day4 implements Solution {
                     if (board.hasBingo()) {
                         console.log("We have a winner! Board:");
                         board.print();
-                        console.log(`Score is: ${board.score(draw)}`);
-                        break outer
+                        console.log(`Score is: ${board.score(draw)}\n`);
+
+                        if (boards.every(b => b.hasWon)) {
+                            console.log("The last winner is shown above -- exiting!");
+                            break outer
+                        }
                     }
                 }
             }
