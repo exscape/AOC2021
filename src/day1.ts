@@ -8,8 +8,8 @@ function* slidingWindow(array: number[], windowSize: number) {
 }
 
 class Day1 implements Solution {
-    parseData(data: string) {
-        let numbers = data.split("\n").map(s => parseInt(s));
+    parseData(lines: string[]) {
+        let numbers = lines.map(s => parseInt(s));
 
         for (let windowSize of [1, 3]) {
             let previous;
@@ -27,7 +27,7 @@ class Day1 implements Solution {
     }
 
     answer() {
-        readLines('data/day1.txt', (data) => this.parseData(data));
+        readLines('data/day1.txt', (lines) => this.parseData(lines));
     }
 }
 

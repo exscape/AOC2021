@@ -3,12 +3,12 @@ import { readLines } from './common.js';
 
 class Day2 implements Solution {
     answer() {
-        readLines("data/day2.txt", (data) => {
+        readLines("data/day2.txt", (lines) => {
             // Index 0 = Part 1 solution, index 1 = Part 2 solution
             let position = [0, 0];
             let depth = [0, 0];
             let aim = 0;
-            for (let line of data.split("\r\n")) {
+            for (let line of lines) {
                 let [command, arg] = line.split(" ");
                 let value = parseInt(arg);
                 switch (command) {

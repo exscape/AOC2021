@@ -14,8 +14,8 @@ function mostCommon(lines: string[], position: number) {
 
 class Day3 implements Solution {
     answer() {
-        readLines("data/day3.txt", (data) => {
-            let lines = data.split("\r\n").filter((s) => s.length > 0);
+        readLines("data/day3.txt", (lines) => {
+            lines = lines.filter((s) => s.length > 0);
             
             // Part 1
             let gammaRate = 0;
