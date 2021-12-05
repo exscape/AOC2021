@@ -58,15 +58,7 @@ class Day5 implements Solution {
             }
         }
 
-        let total_overlaps = 0;
-        for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                if (grid[y][x] >= 2)
-                    total_overlaps++;
-            }
-        }
-
-        return total_overlaps;
+        return grid.flat().filter(entry => entry >= 2).length;
     }
 
     answer() {
