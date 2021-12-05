@@ -18,6 +18,10 @@ class Line {
         [this.start, this.end] = s.split(" -> ").map(s => new Point(s));
     }
 
+    isDiagonal(): boolean {
+        return this.start.x != this.end.x && this.start.y != this.end.y;
+    }
+
     // Enumerate all the points that lie on this line
     *points() {
         if (this.start.x == this.end.x) {
@@ -34,37 +38,52 @@ class Line {
                 yield [x, this.start.y];
              }
         }
-        else
-            throw new Error("Diagonals not supported yet");
+        else {
+            // Number of steps along x = number of steps along y, since all diagonals are along 45 degree angles
+            let steps = Math.abs(this.start.x - this.end.x) + 1;
+
+            // Draw all lines top-to-bottom (y increasing). x may either increase (top left -> bottom right) or decrease (top right -> bottom left).
+            let x_dir = this.end.x > this.start.x; // Is x increasing?
+            let y_dir = this.end.y > this.start.y; // Is y increasing?
+            for (let i = 0, x = this.start.x, y = this.start.y; i < steps; i++, (x_dir ? x++ : x--), (y_dir ? y++ : y--)) {
+                yield [x, y];
+            }
+        }
     }
 }
 
+const GRID_SIZE = 1000;
+
 class Day5 implements Solution {
+    allLines: Line[] = [];
+
+    findOverlaps(considerDiagonals: boolean): number {
+        let lines = considerDiagonals ? [...this.allLines] 
+                                      : this.allLines.filter(line => !line.isDiagonal());
+        let grid = Array(GRID_SIZE).fill(0).map(_ => Array(GRID_SIZE).fill(0));
+
+        for (let line of lines) {
+            for (let [x, y] of line.points()) {
+                grid[y][x]++;
+            }
+        }
+
+        let total_overlaps = 0;
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                if (grid[y][x] >= 2)
+                    total_overlaps++;
+            }
+        }
+
+        return total_overlaps;
+    }
+
     answer() {
         readLines("data/day5.txt", (data) => {
-            let lines = data.map(s => new Line(s));
-            let horVertLines = lines.filter(line => line.start.x == line.end.x || line.start.y == line.end.y);
-            console.log(horVertLines);
-
-            // Ugly but easy: assume all coordinates are <= 999, which is the case for my data set
-            let grid = Array(1000).fill(0).map(e => Array(1000).fill(0));
-
-            // "Draw" the lines in the grid
-            for (let line of horVertLines) {
-                for (let [x, y] of line.points()) {
-                    grid[y][x]++;
-                }
-            }
-
-            let total_overlaps = 0;
-            for (let y = 0; y < 1000; y++) {
-                for (let x = 0; x < 1000; x++) {
-                    if (grid[y][x] >= 2)
-                        total_overlaps++;
-                }
-            }
-
-            console.log(`Day 5 Part 1: ${total_overlaps}`)
+            this.allLines = data.map(s => new Line(s));
+            console.log(`Day 5 Part 1: ${this.findOverlaps(false)}`);
+            console.log(`Day 5 Part 2: ${this.findOverlaps(true)}`);
         });
     }
 }
