@@ -24,31 +24,21 @@ class Line {
 
     // Enumerate all the points that lie on this line
     *points() {
-        if (this.start.x == this.end.x) {
-             // Vertical line
-             let [low, high] = [Math.min(this.start.y, this.end.y), Math.max(this.start.y, this.end.y)];
-             for (let y = low; y <= high; y++) {
-                yield [this.start.x, y];
-             }
-        }
-        else if (this.start.y == this.end.y) {
-             // Horizontal line
-             let [low, high] = [Math.min(this.start.x, this.end.x), Math.max(this.start.x, this.end.x)];
-             for (let x = low; x <= high; x++) {
-                yield [x, this.start.y];
-             }
-        }
-        else {
-            // Number of steps along x = number of steps along y, since all diagonals are along 45 degree angles
-            let steps = Math.abs(this.start.x - this.end.x) + 1;
+        let x = this.start.x;
+        let y = this.start.y;
 
-            // Draw all lines top-to-bottom (y increasing). x may either increase (top left -> bottom right) or decrease (top right -> bottom left).
-            let x_dir = this.end.x > this.start.x; // Is x increasing?
-            let y_dir = this.end.y > this.start.y; // Is y increasing?
-            for (let i = 0, x = this.start.x, y = this.start.y; i < steps; i++, (x_dir ? x++ : x--), (y_dir ? y++ : y--)) {
-                yield [x, y];
-            }
+        function advance(val: number, start: number, end: number) {
+            if (end > start) return val + 1;
+            else if (start > end) return val - 1;
+            else return val;
         }
+
+        while (x != this.end.x || y != this.end.y) {
+            yield [x, y];
+            x = advance(x, this.start.x, this.end.x);
+            y = advance(y, this.start.y, this.end.y);
+        }
+        yield [this.end.x, this.end.y];
     }
 }
 
