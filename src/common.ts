@@ -1,10 +1,10 @@
 import fs from 'fs';
 
-function arraySum(array: number[]): number {
+export function arraySum(array: number[]): number {
     return array.reduce((a, b) => a + b, 0);
 }
 
-function readFile(path: string, callback: {(data: string): void}) {
+export function readFile(path: string, callback: {(data: string): void}) {
     fs.readFile(path, "utf8", (err, data) => {
         if (err) {
             console.error("Fatal error, exiting: " + err);
@@ -15,10 +15,22 @@ function readFile(path: string, callback: {(data: string): void}) {
     })
 }
 
-function readLines(path: string, callback: {(lines: string[]): void}) {
+export function readLines(path: string, callback: {(lines: string[]): void}) {
     readFile(path, (data) => {
         callback(data.split("\r\n"));
     })
 }
 
-export { arraySum, readFile, readLines };
+export class Perf {
+    start: bigint;
+    constructor() {
+        this.start = process.hrtime.bigint();
+    }
+
+    end(printResult?: boolean) {
+        let end = process.hrtime.bigint();
+        let diff = end - this.start;
+        if (printResult !== false)
+            console.log(`Time taken: ${diff / 1000n} microseconds`);
+    }
+}
