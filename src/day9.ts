@@ -13,20 +13,22 @@ class Coordinate {
 class Grid {
     squares: number[][] = [];
 
-    addRow(row: number[]) {
-        this.squares.push(row);
+    constructor(lines: string[]) {
+        for (let line of lines) {
+            this.squares.push(line.split('').map(s => parseInt(s)));
+        }
     }
 
-    height() {
-        return this.squares.length;
-    }
+    at = (coord: Coordinate) => this.squares[coord.y][coord.x];
+    height = () => this.squares.length;
+    width = () => this.squares[0].length;
 
-    width() {
-        return this.squares[0].length;
-    }
-
-    at(coord: Coordinate): number {
-        return this.squares[coord.y][coord.x];
+    *coords() {
+        for (let y = 0; y < this.height(); y++) {
+            for (let x = 0; x < this.width(); x++) {
+                yield new Coordinate(x, y);
+            }
+        }
     }
 
     adjacents(coord: Coordinate): number[] {
@@ -40,19 +42,10 @@ class Grid {
 class Day9 implements Solution {
     answer() {
         readLines("data/day9.txt", (data) => {
-            let grid = new Grid();
-            for (let line of data) {
-                grid.addRow(line.split('').map(s => parseInt(s)));
-            }
-
-            let lowPoints = [];
-            for (let y = 0; y < grid.height(); y++) {
-                for (let x = 0; x < grid.width(); x++) {
-                    let coord = new Coordinate(x, y);
-                    if (grid.adjacents(coord).every(n => grid.at(coord) < n))
-                        lowPoints.push(coord);
-                }
-            }
+            let grid = new Grid(data);
+            let lowPoints = [...grid.coords()].filter(coord =>
+                grid.adjacents(coord).every(n => grid.at(coord) < n)
+            );
 
             let riskLevel = arraySum(lowPoints.map(coord => grid.at(coord))) + lowPoints.length;
             console.log(`Day 9 Part 1: ${riskLevel}`);
