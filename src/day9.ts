@@ -31,12 +31,36 @@ class Grid {
         }
     }
 
-    adjacents(coord: Coordinate): number[] {
+    adjacentValues(coord: Coordinate): number[] {
+        return this.adjacentCoordinates(coord).map(coord => this.at(coord));
+    }
+
+    adjacentCoordinates(coord: Coordinate): Coordinate[] {
         const x = coord.x;
         const y = coord.y;
-        return [this.squares[y-1]?.[x], this.squares[y+1]?.[x], this.squares[y]?.[x-1], this.squares[y]?.[x+1]]
-               .filter(sq => sq != undefined);
+        return [new Coordinate(x, y-1), new Coordinate(x, y+1), new Coordinate(x-1, y), new Coordinate(x+1, y)]
+               .filter(c => c.x >= 0 && c.y >= 0 && c.x < this.width() && c.y < this.height());
     }
+
+    // Basins are found by looking at each low point, and recursively moving outwards (up/down/left/right) until we hit a 9,
+    // which is not counted as part of the basin. This means we will find points that are located diagonally from the low point,
+    // but only after recursively moving e.g. down and then right.
+    findLowerCoordinates(start: Coordinate): Coordinate[] {
+        let found = [start];
+        for (let adjacent of this.adjacentCoordinates(start)) {
+            if (this.at(adjacent) != 9 && this.at(adjacent) > this.at(start)) {
+                found.push(adjacent);
+                found.push(...this.findLowerCoordinates(adjacent));
+            }
+        }
+
+        return found;
+    }
+}
+
+// Ugh. Set() only compares by reference (===) so it doesn't help us. This does.
+function unique(list: Coordinate[]): Coordinate[] {
+    return [...new Map(list.map(v => [JSON.stringify([v.x,v.y]), v])).values()];
 }
 
 class Day9 implements Solution {
@@ -44,11 +68,22 @@ class Day9 implements Solution {
         readLines("data/day9.txt", (data) => {
             let grid = new Grid(data);
             let lowPoints = [...grid.coords()].filter(coord =>
-                grid.adjacents(coord).every(n => grid.at(coord) < n)
+                grid.adjacentValues(coord).every(n => grid.at(coord) < n)
             );
 
             let riskLevel = arraySum(lowPoints.map(coord => grid.at(coord))) + lowPoints.length;
             console.log(`Day 9 Part 1: ${riskLevel}`);
+
+            let basins = [];
+            for (let lowPoint of lowPoints) {
+                // This is hardly optimal, but it'll have to do.
+                let basinCoordinates = unique(grid.findLowerCoordinates(lowPoint));
+                basins.push(basinCoordinates.length);
+            }
+            basins.sort((a, b) => b - a);
+            let basinProduct = basins.slice(0, 3)
+                                     .reduce((a, b) => a * b, 1);
+            console.log(`Day 9 Part 2: ${basinProduct}`);
         });
     }
 }
