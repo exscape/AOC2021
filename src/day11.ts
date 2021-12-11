@@ -5,9 +5,9 @@ class Square {
     energyLevel: number;
     flashed: boolean;
 
-    constructor(value: number, flashed: boolean) {
+    constructor(value: number) {
         this.energyLevel = value;
-        this.flashed = flashed;
+        this.flashed = false;
     }
 }
 
@@ -22,7 +22,9 @@ class Coordinate {
 
 class Grid {
     squares: Square[][];
-    numFlashes: number = 0;
+    numFlashes = 0;
+    stepNumber = 0;
+    hasSynchronized = false;
 
     constructor(lines: string[]) {
         this.squares = [];
@@ -30,7 +32,7 @@ class Grid {
         for (let line of lines) {
             let row = line.trim()
                           .split('')
-                          .map(s => new Square(parseInt(s), false));
+                          .map(s => new Square(parseInt(s)));
             this.squares.push(row);
         }
     }
@@ -45,10 +47,6 @@ class Grid {
                 yield new Coordinate(x, y);
             }
         }
-    }
-
-    adjacentSquares(coord: Coordinate, includeDiagonals?: boolean): Square[] {
-        return this.adjacentCoordinates(coord, includeDiagonals).map(coord => this.at(coord));
     }
 
     adjacentCoordinates(coord: Coordinate, includeDiagonals?: boolean): Coordinate[] {
@@ -81,11 +79,12 @@ class Grid {
         do {
             oldFlashCount = this.numFlashes;
             for (let coord of this.coords()) {
-                if (this.at(coord).energyLevel > 9 && this.at(coord).flashed == false) {
+                if (this.at(coord).energyLevel > 9 && this.at(coord).flashed == false)
                     this.flash(coord);
-                }
             }
-        } while(oldFlashCount != this.numFlashes);
+        } while(this.numFlashes > oldFlashCount);
+
+        this.hasSynchronized = this.squares.flat().every(sq => sq.flashed);
 
         // Reset for next step
         for (let coord of this.coords()) {
@@ -94,39 +93,22 @@ class Grid {
 
             this.at(coord).flashed = false;
         }
-    }
 
-    print() {
-        for (let row = 0; row < this.height(); row++) {
-            for (let col = 0; col < this.width(); col++) {
-                process.stdout.write(this.squares[row][col].energyLevel.toString());
-            }
-            process.stdout.write("\n");
-        }
-    }
-
-    gridColumns(): Square[][] {
-        // Transpose the matrix to make the columns into rows (and vice versa)
-        return this.squares[0].map((_,i) => this.squares.map(x => x[i]));
+        this.stepNumber++;
     }
 }
 
 export class Day11 implements Solution {
     answer() {
         readLines("data/day11.txt", (lines) => {
-        //readLines("samples/day11.txt", (lines) => {
             let grid = new Grid(lines);
 
-            grid.print();
-            console.log("---------------------");
-            for (let i = 0; i < 100; i++) {
+            while (!grid.hasSynchronized) {
                 grid.step();
-                console.log(`After ${i+1} steps (${grid.numFlashes} flashes):`)
-                grid.print();
-                console.log("---------------------");
+                if (grid.stepNumber == 100)
+                    console.log(`Day 11 Part 1: ${grid.numFlashes}`);
             }
-
-            console.log(`Day 11 Part 1: ${grid.numFlashes}`);
+            console.log(`Day 11 Part 2: ${grid.stepNumber}`);
         });
     }
 }
