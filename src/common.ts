@@ -34,3 +34,46 @@ export class Perf {
             console.log(`Time taken: ${diff / 1000n} microseconds`);
     }
 }
+
+export class Coordinate {
+    x: number;
+    y: number;
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+export class GenericGrid<Type> {
+    squares: Type[][];
+
+    constructor() {
+        this.squares = [];
+    }
+
+    at = (coord: Coordinate) => this.squares[coord.y][coord.x];
+    height = () => this.squares.length;
+    width = () => this.squares[0].length;
+
+    *coords() {
+        for (let y = 0; y < this.height(); y++) {
+            for (let x = 0; x < this.width(); x++) {
+                yield new Coordinate(x, y);
+            }
+        }
+    }
+
+    adjacentCoordinates(coord: Coordinate, includeDiagonals?: boolean): Coordinate[] {
+        includeDiagonals ??= true;
+        const [x, y] = [coord.x, coord.y];
+        let list = [new Coordinate(x, y-1), new Coordinate(x, y+1), new Coordinate(x-1, y), new Coordinate(x+1, y)];
+        if (includeDiagonals)
+            list.push(...[new Coordinate(x-1, y-1), new Coordinate(x+1, y-1), new Coordinate(x-1, y+1), new Coordinate(x+1, y+1)]);
+
+        return list.filter(c => c.x >= 0 && c.y >= 0 && c.x < this.width() && c.y < this.height());
+    }
+
+    adjacentSquares(coord: Coordinate, includeDiagonals?: boolean): Type[] {
+        return this.adjacentCoordinates(coord, includeDiagonals).map(coord => this.at(coord));
+    }
+}

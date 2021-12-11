@@ -1,5 +1,5 @@
 import { Solution } from './solution.js';
-import { readLines } from './common.js';
+import { readLines, GenericGrid, Coordinate } from './common.js';
 
 class Square {
     energyLevel: number;
@@ -11,22 +11,12 @@ class Square {
     }
 }
 
-class Coordinate {
-    x: number;
-    y: number;
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-class Grid {
-    squares: Square[][];
+class Grid extends GenericGrid<Square> {
     numFlashes = 0;
     stepNumber = 0;
     hasSynchronized = false;
 
-    constructor(lines: string[]) {
+    initialize(lines: string[]): Grid {
         this.squares = [];
 
         for (let line of lines) {
@@ -35,28 +25,8 @@ class Grid {
                           .map(s => new Square(parseInt(s)));
             this.squares.push(row);
         }
-    }
 
-    at = (coord: Coordinate) => this.squares[coord.y][coord.x];
-    height = () => this.squares.length;
-    width = () => this.squares[0].length;
-
-    *coords() {
-        for (let y = 0; y < this.height(); y++) {
-            for (let x = 0; x < this.width(); x++) {
-                yield new Coordinate(x, y);
-            }
-        }
-    }
-
-    adjacentCoordinates(coord: Coordinate, includeDiagonals?: boolean): Coordinate[] {
-        includeDiagonals ??= true;
-        const [x, y] = [coord.x, coord.y];
-        let list = [new Coordinate(x, y-1), new Coordinate(x, y+1), new Coordinate(x-1, y), new Coordinate(x+1, y)];
-        if (includeDiagonals)
-            list.push(...[new Coordinate(x-1, y-1), new Coordinate(x+1, y-1), new Coordinate(x-1, y+1), new Coordinate(x+1, y+1)]);
-        
-        return list.filter(c => c.x >= 0 && c.y >= 0 && c.x < this.width() && c.y < this.height());
+        return this;
     }
 
     flash(coord: Coordinate) {
@@ -101,7 +71,7 @@ class Grid {
 export class Day11 implements Solution {
     answer() {
         readLines("data/day11.txt", (lines) => {
-            let grid = new Grid(lines);
+            let grid = new Grid().initialize(lines);
 
             while (!grid.hasSynchronized) {
                 grid.step();
