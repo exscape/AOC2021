@@ -17,13 +17,13 @@ class Grid extends GenericGrid<Square> {
     hasSynchronized = false;
 
     initialize(lines: string[]): Grid {
-        this.squares = [];
+        this._squares = [];
 
         for (let line of lines) {
             let row = line.trim()
                           .split('')
                           .map(s => new Square(parseInt(s)));
-            this.squares.push(row);
+            this._squares.push(row);
         }
 
         return this;
@@ -54,7 +54,7 @@ class Grid extends GenericGrid<Square> {
             }
         } while(this.numFlashes > oldFlashCount);
 
-        this.hasSynchronized = this.squares.flat().every(sq => sq.flashed);
+        this.hasSynchronized = [...this.squares()].every(sq => sq.flashed);
 
         // Reset for next step
         for (let coord of this.coords()) {

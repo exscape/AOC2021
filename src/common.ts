@@ -45,15 +45,15 @@ export class Coordinate {
 }
 
 export class GenericGrid<Type> {
-    squares: Type[][];
+    _squares: Type[][];
 
     constructor() {
-        this.squares = [];
+        this._squares = [];
     }
 
-    at = (coord: Coordinate) => this.squares[coord.y][coord.x];
-    height = () => this.squares.length;
-    width = () => this.squares[0].length;
+    at = (coord: Coordinate) => this._squares[coord.y][coord.x];
+    height = () => this._squares.length;
+    width = () => this._squares[0].length;
 
     *coords() {
         for (let y = 0; y < this.height(); y++) {
@@ -79,16 +79,16 @@ export class GenericGrid<Type> {
 
     columns(): Type[][] {
         // Transpose the matrix to make the columns into rows (and vice versa)
-        return this.squares[0].map((_,i) => this.squares.map(x => x[i]));
+        return this._squares[0].map((_,i) => this._squares.map(x => x[i]));
     }
 
     // Added as a counterpart to columns(), makes for prettier code, e.g.
     // if (this.rows().some(row => this.lineHasBingo(row)) || this.columns().some(col => this.lineHasBingo(col)))
     rows(): Type[][] {
-        return this.squares;
+        return this._squares;
     }
 
-    *squaresFlat() {
+    *squares() {
         for (let coord of this.coords())
             yield this.at(coord);
     }

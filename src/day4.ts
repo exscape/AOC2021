@@ -20,7 +20,7 @@ class Board extends GenericGrid<Square> {
             let row = line.trim()
                           .split(new RegExp("\\s+"))
                           .map(s => new Square(parseInt(s), false));
-            this.squares.push(row);
+            this._squares.push(row);
         }
 
         return this;
@@ -29,7 +29,7 @@ class Board extends GenericGrid<Square> {
     mark(draw: number) {
         this.lastDraw = draw;
 
-        for (let square of this.squaresFlat()) {
+        for (let square of this.squares()) {
             if (square.value == draw)
                 square.drawn = true;
         }
@@ -46,8 +46,7 @@ class Board extends GenericGrid<Square> {
 
     score(): number {
         // Find the sum of all unmarked numbers, then multiply by lastDraw
-        return this.lastDraw * arraySum(this.squares
-                                       .flat()
+        return this.lastDraw * arraySum([...this.squares()]
                                        .filter(sq => !sq.drawn)
                                        .map(sq => sq.value));
     }

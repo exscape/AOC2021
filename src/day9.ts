@@ -4,7 +4,7 @@ import { readLines, arraySum, Coordinate, GenericGrid } from './common.js';
 class Grid extends GenericGrid<number> {
     initialize(lines: string[]) {
         for (let line of lines) {
-            this.squares.push(line.split('').map(s => parseInt(s)));
+            this._squares.push(line.split('').map(s => parseInt(s)));
         }
 
         return this;
