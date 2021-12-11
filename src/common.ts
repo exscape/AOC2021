@@ -76,4 +76,20 @@ export class GenericGrid<Type> {
     adjacentSquares(coord: Coordinate, includeDiagonals?: boolean): Type[] {
         return this.adjacentCoordinates(coord, includeDiagonals).map(coord => this.at(coord));
     }
+
+    columns(): Type[][] {
+        // Transpose the matrix to make the columns into rows (and vice versa)
+        return this.squares[0].map((_,i) => this.squares.map(x => x[i]));
+    }
+
+    // Added as a counterpart to columns(), makes for prettier code, e.g.
+    // if (this.rows().some(row => this.lineHasBingo(row)) || this.columns().some(col => this.lineHasBingo(col)))
+    rows(): Type[][] {
+        return this.squares;
+    }
+
+    *squaresFlat() {
+        for (let coord of this.coords())
+            yield this.at(coord);
+    }
 }

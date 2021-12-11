@@ -1,5 +1,5 @@
 import { Solution } from './solution.js';
-import { readFile, arraySum } from './common.js';
+import { readFile, arraySum, GenericGrid } from './common.js';
 
 class Square {
     value: number;
@@ -11,37 +11,32 @@ class Square {
     }
 }
 
-class Board {
-    board: Square[][];
-    hasWon: boolean;
-    lastDraw: number;
+class Board extends GenericGrid<Square> {
+    hasWon = false;
+    lastDraw = -1;
 
-    constructor(lines: string[]) {
-        this.board = [];
-        this.hasWon = false;
-        this.lastDraw = -1;
-
+    initialize(lines: string[]) {
         for (let line of lines) {
             let row = line.trim()
                           .split(new RegExp("\\s+"))
                           .map(s => new Square(parseInt(s), false));
-            this.board.push(row);
+            this.squares.push(row);
         }
+
+        return this;
     }
 
     mark(draw: number) {
         this.lastDraw = draw;
 
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 5; col++) {
-                if (this.board[row][col].value == draw)
-                    this.board[row][col].drawn = true;
-            }
+        for (let square of this.squaresFlat()) {
+            if (square.value == draw)
+                square.drawn = true;
         }
     }
 
     hasBingo(): boolean {
-        if (this.board.some(row => this.lineHasBingo(row)) || this.boardColumns().some(col => this.lineHasBingo(col))) {
+        if (this.rows().some(row => this.lineHasBingo(row)) || this.columns().some(col => this.lineHasBingo(col))) {
             this.hasWon = true;
             return true;
         }
@@ -51,7 +46,7 @@ class Board {
 
     score(): number {
         // Find the sum of all unmarked numbers, then multiply by lastDraw
-        return this.lastDraw * arraySum(this.board
+        return this.lastDraw * arraySum(this.squares
                                        .flat()
                                        .filter(sq => !sq.drawn)
                                        .map(sq => sq.value));
@@ -60,22 +55,13 @@ class Board {
     lineHasBingo(line: Square[]): boolean {
         return line.every(square => square.drawn);
     }
-
-    boardColumns(): Square[][] {
-        // Transpose the matrix to make the columns into rows (and vice versa)
-        return this.board[0].map((_,i) => this.board.map(x => x[i]));
-    }
 }
 
-class Day4 implements Solution {
+export class Day4 implements Solution {
     answer() {
         readFile("data/day4.txt", (data) => {
             let [numbers, ...board_data] = data.split("\r\n\r\n");
-            let boards: Board[] = [];
-
-            for (let data of board_data) {
-                boards.push(new Board(data.split("\r\n")));
-            }
+            let boards = board_data.map(lines => new Board().initialize(lines.split("\r\n")));
 
             outer:
             for (let drawnStr of numbers.split(",")) {
@@ -100,5 +86,3 @@ class Day4 implements Solution {
         });
     }
 }
-
-export { Day4 }
