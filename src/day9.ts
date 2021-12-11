@@ -1,45 +1,13 @@
 import { Solution } from './solution.js';
-import { readLines, arraySum } from './common.js';
+import { readLines, arraySum, Coordinate, GenericGrid } from './common.js';
 
-class Coordinate {
-    x: number;
-    y: number;
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-class Grid {
-    squares: number[][] = [];
-
-    constructor(lines: string[]) {
+class Grid extends GenericGrid<number> {
+    initialize(lines: string[]) {
         for (let line of lines) {
             this.squares.push(line.split('').map(s => parseInt(s)));
         }
-    }
 
-    at = (coord: Coordinate) => this.squares[coord.y][coord.x];
-    height = () => this.squares.length;
-    width = () => this.squares[0].length;
-
-    *coords() {
-        for (let y = 0; y < this.height(); y++) {
-            for (let x = 0; x < this.width(); x++) {
-                yield new Coordinate(x, y);
-            }
-        }
-    }
-
-    adjacentValues(coord: Coordinate): number[] {
-        return this.adjacentCoordinates(coord).map(coord => this.at(coord));
-    }
-
-    adjacentCoordinates(coord: Coordinate): Coordinate[] {
-        const x = coord.x;
-        const y = coord.y;
-        return [new Coordinate(x, y-1), new Coordinate(x, y+1), new Coordinate(x-1, y), new Coordinate(x+1, y)]
-               .filter(c => c.x >= 0 && c.y >= 0 && c.x < this.width() && c.y < this.height());
+        return this;
     }
 
     // Basins are found by looking at each low point, and recursively moving outwards (up/down/left/right) until we hit a 9,
@@ -47,7 +15,7 @@ class Grid {
     // but only after recursively moving e.g. down and then right.
     findLowerCoordinates(start: Coordinate): Coordinate[] {
         let found = [start];
-        for (let adjacent of this.adjacentCoordinates(start)) {
+        for (let adjacent of this.adjacentCoordinates(start, false)) {
             if (this.at(adjacent) != 9 && this.at(adjacent) > this.at(start)) {
                 found.push(adjacent);
                 found.push(...this.findLowerCoordinates(adjacent));
@@ -66,9 +34,9 @@ function unique(list: Coordinate[]): Coordinate[] {
 class Day9 implements Solution {
     answer() {
         readLines("data/day9.txt", (data) => {
-            let grid = new Grid(data);
+            let grid = new Grid().initialize(data);
             let lowPoints = [...grid.coords()].filter(coord =>
-                grid.adjacentValues(coord).every(n => grid.at(coord) < n)
+                grid.adjacentSquares(coord, false).every(n => grid.at(coord) < n)
             );
 
             let riskLevel = arraySum(lowPoints.map(coord => grid.at(coord))) + lowPoints.length;
