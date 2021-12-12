@@ -32,32 +32,32 @@ function buildDestinationMap(lines: string[]) {
     return destinations;
 }
 
-function findPaths(destinations: DestinationMap, start: string, allowSmallDuplicates: boolean, visited: string[] = []) {
-    let paths: string[][] = [];
+function findPathCount(destinations: DestinationMap, start: string, allowSmallDuplicates: boolean, visited: string[] = []) {
+    let pathCount = 0;
 
     visited.push(start);
 
     if (start == "end") {
-        paths.push(visited);
-        return paths;
+        return pathCount + 1;
     }
 
     for (let dest of destinations[start]) {
         // Try every destination, except ones we've seen before -- unless they're "big" caves (capital letters).
         // For part 2, another exception is that ONE small cave is allowed to be visited twice.
-        if (!visited.includes(dest) || isBigCave(dest) || (allowSmallDuplicates && firstSmallDuplicate(visited)))
-            paths.push(...findPaths(destinations, dest, allowSmallDuplicates, [...visited]));
+        if (!visited.includes(dest) || isBigCave(dest) || (allowSmallDuplicates && firstSmallDuplicate(visited))) {
+            pathCount += findPathCount(destinations, dest, allowSmallDuplicates, [...visited]);
+        }
     }
 
-    return paths;
+    return pathCount;
 }
 
 export class Day12 implements Solution {
     answer() {
         readLines("data/day12.txt", (lines) => {
             let destinations = buildDestinationMap(lines);
-            console.log(`Day 12 Part 1: ${findPaths(destinations, "start", false).length}`);
-            console.log(`Day 12 Part 2: ${findPaths(destinations, "start", true).length}`);
+            console.log(`Day 12 Part 1: ${findPathCount(destinations, "start", false)}`);
+            console.log(`Day 12 Part 2: ${findPathCount(destinations, "start", true)}`);
         });
     }
 }
