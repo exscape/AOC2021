@@ -14,19 +14,19 @@ type DestinationMap = Record<string, [string]>;
 
 // Build a map of possible destinations from each position.
 function buildDestinationMap(lines: string[]) {
-    const insert = (dest: DestinationMap, a: string, b: string) => {
-        if (dest[a] === undefined)
-            dest[a] = [b];
+    const insert = (destinationMap: DestinationMap, origin: string, dest: string) => {
+        if (destinationMap[origin] === undefined)
+            destinationMap[origin] = [dest];
         else
-            dest[a].push(b);
+            destinationMap[origin].push(dest);
     };
 
     let destinations : DestinationMap = {};
     for (let line of lines) {
-        let [a, b] = line.split("-");
-        insert(destinations, a, b);
-        if (a != "start")
-            insert(destinations, b, a);
+        let [origin, dest] = line.split("-");
+        insert(destinations, origin, dest);
+        if (origin != "start")
+            insert(destinations, dest, origin);
     }
 
     return destinations;
