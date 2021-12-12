@@ -17,7 +17,7 @@ export function readFile(path: string, callback: {(data: string): void}) {
 
 export function readLines(path: string, callback: {(lines: string[]): void}) {
     readFile(path, (data) => {
-        callback(data.split("\r\n"));
+        callback(data.split(/\r?\n/));
     })
 }
 
