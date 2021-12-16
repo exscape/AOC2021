@@ -4,6 +4,10 @@ export function arraySum(array: number[]): number {
     return array.reduce((a, b) => a + b, 0);
 }
 
+export function arrayProduct(array: number[]): number {
+    return array.reduce((a, b) => a * b, 1);
+}
+
 export function readFile(path: string, callback: {(data: string): void}) {
     fs.readFile(path, "utf8", (err, data) => {
         if (err) {

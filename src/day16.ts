@@ -1,18 +1,25 @@
 import { Solution } from './solution.js';
-import { readFile } from './common.js';
-
-// Since we're given the hint that there are numbers and operations here, we most certainly want to
-// retain the tree structure of the data, and not flatten it to a list of packets.
-// That way, we end up with an Abstract Syntax Tree of operations (operators) and numbers.
+import { readFile, arraySum, arrayProduct } from './common.js';
 
 class Node {
     value: number | undefined = undefined;
     version: number = -1;
-    type: number = -1;
+    type = PacketType.Invalid;
     children: Node[] = [];
 
     constructor() {}
+}
 
+enum PacketType {
+    Sum = 0,
+    Product,
+    Minimum,
+    Maximum,
+    Literal,
+    GreaterThan,
+    LessThan,
+    EqualTo,
+    Invalid = -1
 }
 
 function parsePacket(binStr: string): [Node, string] {
@@ -28,7 +35,7 @@ function parsePacket(binStr: string): [Node, string] {
     node.version = readNumber(3);
     node.type = readNumber(3);
 
-    if (node.type == 4) {
+    if (node.type == PacketType.Literal) {
         let bits = "";
         let group;
         do {
@@ -45,7 +52,7 @@ function parsePacket(binStr: string): [Node, string] {
 
     let lengthTypeId = readNumber(1);
     if (lengthTypeId == 0) {
-        // The next *15* bits contain the bit length of all sub-packets
+        // The next 15 bits contain the bit length of all sub-packets
         let bitLength = readNumber(15);
         let start = binStr.length;
         while (binStr.length > start - bitLength) {
@@ -55,7 +62,7 @@ function parsePacket(binStr: string): [Node, string] {
         }
     }
     else {
-        // The next *11* bits contain the *number of* sub-packets
+        // The next 11 bits contain the *number of* sub-packets
         let subPacketCount = readNumber(11);
         for (let i = 0; i < subPacketCount; i++) {
             let newNode;
@@ -76,6 +83,36 @@ function totalVersionCount(node: Node): number {
     return total;
 }
 
+function performCalculation(node: Node): number {
+    let values: number[] = [];
+
+    for (let child of node.children) {
+        if (child.type == PacketType.Literal)
+            values.push(child.value!);
+        else
+            values.push(performCalculation(child));
+    }
+
+    switch (node.type) {
+        case PacketType.Sum:
+            return arraySum(values);
+        case PacketType.Product:
+            return arrayProduct(values);
+        case PacketType.Minimum:
+            return Math.min(...values);
+        case PacketType.Maximum:
+            return Math.max(...values);
+        case PacketType.GreaterThan:
+            return values[0] > values[1] ? 1 : 0;
+        case PacketType.LessThan:
+            return values[0] < values[1] ? 1 : 0;
+        case PacketType.EqualTo:
+            return values[0] == values[1] ? 1 : 0;
+        default:
+            throw new Error("Invalid packet type in performCalculation");
+    }
+}
+
 export class Day16 implements Solution {
     answer() {
         readFile("data/day16.txt", (hexStr) => {
@@ -87,8 +124,8 @@ export class Day16 implements Solution {
             let binStr = hexStr.split('').map(d => hexToBin[d]).join('');
 
             let rootNode = parsePacket(binStr)[0];
-            let totalVersion = totalVersionCount(rootNode);
-            console.log(`Day 16 Part 1: ${totalVersion}`);
+            console.log(`Day 16 Part 1: ${totalVersionCount(rootNode)}`);
+            console.log(`Day 16 Part 2: ${performCalculation(rootNode)}`);
         });
     }
 }
