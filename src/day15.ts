@@ -1,42 +1,35 @@
 import { Solution } from './solution.js';
-import { readLines, GenericGrid, Coordinate, arraySum } from './common.js';
-//import FastPriorityQueue = require('fastpriorityqueue');
+import { readLines, GenericGrid, Coordinate } from './common.js';
 
-function minimumDistanceNode(distances: Map<string, number>, visited: Set<string>) {
-    // Ugh! Needs work. FastPriorityQueue didn't seem to work well with the changing distance function.
-    // Find the *unvisited* node with the lowest distance score.
-    let least_distance = Number.POSITIVE_INFINITY;
-    let least_vertex: string;
-    for (let [vertex, distance] of distances.entries()) {
-        if (distance < least_distance && !visited.has(vertex)) {
-            least_distance = distance;
-            least_vertex = vertex;
-        }
+import Heapify from './heapify.cjs';
+
+function expandGrid(originalGrid: Grid) {
+    // Repeat the grid 5 times in each direction, increasing every risk value by 1 for each step to the right OR down.
+    // Values loop back 9 -> 1 (not to 0!).
+    let gridData: string[] = [];
+
+    const mapFunc = (n: number, x: number, y: number) => {
+        let newValue = n + x + y;
+        if (newValue > 9)
+            newValue = newValue % 10 + 1;
+        return newValue;
+    }
+    let originalRows = [...originalGrid.rows()];
+
+    for (let y = 0; y < originalGrid.height() * 5; y++) {
+        let row: number[] = [];
+        for (let x = 0; x < 5; x++)
+            row = row.concat(originalRows[y % originalGrid.height()].map(n => mapFunc(n, x, Math.floor(y / originalGrid.height()))));
+        gridData.push(row.join(''));
     }
 
-    let [x,y] = least_vertex!.split(',').map(s => parseInt(s));
-    return new Coordinate(x,y);
+    return new Grid().initialize(gridData);
 }
 
 class Grid extends GenericGrid<number> {
     initialize(lines: string[]) {
         this._squares.push(...lines.map(line => line.split('').map(s => parseInt(s))));
         return this
-    }
-
-    DEBUG_PRINT(highlightSquares?: Coordinate[]) {
-        highlightSquares ??= [];
-        for (let y = 0; y < this.height(); y++) {
-            for (let x = 0; x < this.width(); x++) {
-                let highlight = highlightSquares.some(sq => sq.x == x && sq.y == y);
-                if (highlight)
-                    process.stdout.write("\u001b[92m");
-                process.stdout.write(this._squares[y][x] + "");
-                if (highlight)
-                    process.stdout.write("\u001b[0m");
-            }
-            process.stdout.write("\n");
-        }
     }
 
     shortestPathCost(start: Coordinate, end: Coordinate) {
@@ -49,35 +42,40 @@ class Grid extends GenericGrid<number> {
         const d_set = (vertex: Coordinate, distance: number) => distances.set(vertex.s(), distance)
         const weight = (vertex: Coordinate) => this.at(vertex)
 
-//        let Q = new FastPriorityQueue((a: Coordinate, b: Coordinate) => d(a) < d(b));
+        let Q = new Heapify(this.height() * this.width() * 20);
 
-        let visited: Set<string> = new Set();
+        let unvisited: Set<string> = new Set();
 
         // Initialize
         for (let coord of this.coords()) {
-            d_set(coord, 1000000);//Number.POSITIVE_INFINITY);
-//            Q.add(coord);
+            d_set(coord, Number.POSITIVE_INFINITY);
+            unvisited.add(coord.s());
         }
         d_set(start, 0);
+        Q.push(start.n(), 0);
 
-        while (visited.size != this.height() * this.width()) {
-//            let v = Q.poll()!;
-            let v = minimumDistanceNode(distances, visited);
-            visited.add(v.s());
+        while (unvisited.size > 0) {
+            let currentCost = Q.peekPriority();
+            let num = Q.pop()!;
+
+            // Hack required as the heap can only store numbers, so we combine x/y to a 32-bit int
+            let v = new Coordinate(num & 0xffff, (num & 0xffff0000) >> 16);
+
+            if (!unvisited.has(v.s()))
+                continue;
+
+            unvisited.delete(v.s());
+
             for (let u of this.adjacentCoordinates(v, false)) {
-                if (visited.has(u.s()))
-                    continue;
+                if (currentCost + weight(u) < d(u))
+                    d_set(u, currentCost + weight(u));
 
-                if (d(v) + weight(u) < d(u))
-                    d_set(u, d(v) + weight(u));
+                Q.push(u.n(), currentCost + weight(u));
             }
+
         }
 
         return distances.get(end.s());
-    }
-
-    pathScore(path: Coordinate[]) {
-        return arraySum(path.slice(1).map(coord => this.at(coord)));
     }
 }
 
@@ -88,6 +86,10 @@ export class Day15 implements Solution {
 
             let cost = grid.shortestPathCost(new Coordinate(0, 0), new Coordinate(grid.width() - 1, grid.height() - 1));
             console.log(`Day 15 Part 1: ${cost}`);
+
+            let biggerGrid = expandGrid(grid);
+            let biggerGridCost = biggerGrid.shortestPathCost(new Coordinate(0, 0), new Coordinate(biggerGrid.width() - 1, biggerGrid.height() - 1));
+            console.log(`Day 15 Part 2: ${biggerGridCost}`);
         });
     }
 }

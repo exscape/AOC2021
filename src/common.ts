@@ -42,6 +42,15 @@ export class Coordinate {
         this.x = x;
         this.y = y;
     }
+
+    s() {
+        return `${this.x},${this.y}`;
+    }
+
+    n() {
+        // For use in heapify, which can only store numbers as keys
+        return (this.y & 0xffff) << 16 | (this.x & 0xffff);
+    }
 }
 
 export class GenericGrid<Type> {
