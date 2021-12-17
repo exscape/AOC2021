@@ -1,5 +1,5 @@
 import { Solution } from './solution.js';
-import { readFile } from './common.js';
+import { readFile, Perf } from './common.js';
 
 /*
 We can sort-of use the equations of motion here.
@@ -66,25 +66,24 @@ function probeHitsTargetArea(xVelocity: number, yVelocity: number, targetArea: T
 export class Day17 implements Solution {
     answer() {
         readFile("data/day17.txt", (data) => {
-            // Example data:
-            //data = "target area: x=20..30, y=-10..-5";
-
+            let perf = new Perf();
             let targetArea = new TargetArea(data);
 
             // Not sure how to limit these better, but these values are sane (though excessive) and should never miss a correct answer.
-            // xVel ranges from the minimum required to reach the target area to high enough to fly past the entire area in the first step.
-            // We test yVel until the probe flies past the area.
             let maxYVelocity = 0;
+            let numHits = 0;
             for (let xVel = minXVelocity(targetArea.minX); xVel <= targetArea.maxX; xVel++) {
-                for (let yVel = 0; yVel < 1000; yVel++) {
-                    let hits = probeHitsTargetArea(xVel, yVel, targetArea);
-                    if (hits) {
+                for (let yVel = targetArea.minY - 1; yVel < 1000; yVel++) {
+                    if (probeHitsTargetArea(xVel, yVel, targetArea)) {
+                        numHits++;
                         if (yVel > maxYVelocity)
                             maxYVelocity = yVel;
                     }
                 }
             }
+            perf.end();
             console.log(`Day 17 Part 1: ${maxYVelocity * (maxYVelocity + 1) / 2}`);
+            console.log(`Day 17 Part 2: ${numHits}`);
         });
     }
 }
