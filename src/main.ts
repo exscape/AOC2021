@@ -17,6 +17,7 @@ import { Day14 } from './day14.js';
 import { Day15 } from './day15.js';
 import { Day16 } from './day16.js';
 import { Day17 } from './day17.js';
+import { Day20 } from './day20.js';
 
 // Saves 20 microseconds the next time it's run -- JIT I suppose?
 let perf = new Perf();
@@ -24,7 +25,7 @@ perf.end(false);
 
 let days = [new Day1(), new Day2(), new Day3(), new Day4(), new Day5(), new Day6(), new Day7(),
             new Day8_Rewrite(), new Day9(), new Day10(), new Day11(), new Day12(), new Day13(),
-            new Day14(), new Day15(), new Day16(), new Day17()];
+            new Day14(), new Day15(), new Day16(), new Day17(), new Day20()];
 
 /*for (let day of days) {
     day.answer();
