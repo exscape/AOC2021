@@ -1,5 +1,5 @@
 import { Solution } from './solution.js';
-import { readFile, GenericGrid, Coordinate } from './common.js';
+import { readFile, GenericGrid, Coordinate, Perf } from './common.js';
 
 class Grid extends GenericGrid<boolean> {
     outOfBoundsPixelValue = false;
@@ -13,8 +13,9 @@ class Grid extends GenericGrid<boolean> {
         return this;
     }
 
-    // The one in common.ts is dissimilar enough that a copy/paste/modify is cleaner than changing the original -- I did try that first...
-    // The main difference being that one only select adjacent squares/pixels, not the active one as well. Plus the ordering is incorrect for this problem.
+    // The one in GenericGrid is dissimilar enough that a copy/paste/modify is cleaner than changing the original -- I did try that first...
+    // The main difference being that the GenericGrid one only select adjacent squares/pixels, not the active one as well.
+    // In addition, the ordering is incorrect for this problem.
     adjacentPixels(coord: Coordinate) {
         const isOutOfBounds = (c: Coordinate) => (c.x < 0 || c.x >= this.width() || c.y < 0 || c.y >= this.height());
         let pixels = [];
@@ -49,7 +50,6 @@ class Grid extends GenericGrid<boolean> {
             oob = imageEnhancement[511];
 
         let output = new Grid().initialize(outputData, oob == "#");
-        console.log(`Original grid ${this.width()}x${this.height()}, new grid ${output.width()}x${output.height()}`);
         return output;
     }
 
@@ -60,16 +60,29 @@ class Grid extends GenericGrid<boolean> {
     }
 }
 
+function repeatedEnhance(image: Grid, count: number, imageEnhancement: string): Grid {
+    for (let i = 0; i < count; i++) {
+        image = image.enhance(imageEnhancement);
+    }
+
+    return image;
+}
+
 export class Day20 implements Solution {
     answer() {
         readFile("data/day20.txt", (data) => {
+            let perf = new Perf();
             let [imageEnhancement, imageData] = data.split("\r\n\r\n");
-            let image = new Grid().initialize(imageData.split("\r\n"), false);
-            for (let i = 0; i < 2; i++) {
-                image = image.enhance(imageEnhancement);
-            }
 
+            let image = new Grid().initialize(imageData.split("\r\n"), false);
+
+            image = repeatedEnhance(image, 2, imageEnhancement);
             console.log(`Day 20 Part 1: ${image.litPixelCount()}`);
+
+            image = repeatedEnhance(image, 48, imageEnhancement);
+            console.log(`Day 20 Part 2: ${image.litPixelCount()}`);
+
+            perf.end();
         });
     }
 }
