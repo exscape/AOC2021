@@ -16,6 +16,7 @@ const ROOT_INDEX = 1;
 
 export default class Heapify {
 
+    // @ts-ignore
     constructor(capacity = 64, keys = [], priorities = [],
         KeysBackingArrayType = Uint32Array,
         PrioritiesBackingArrayType = Uint32Array) {
